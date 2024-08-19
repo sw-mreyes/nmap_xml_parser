@@ -46,6 +46,9 @@ impl From<&str> for Error {
 ///Root structure of a Nmap scan result.
 #[derive(Clone, Debug)]
 pub struct NmapResults {
+    /// Scan commandline arguments
+    pub args: String,
+
     ///List of hosts in the Nmap scan.
     hosts: Vec<Host>,
 
@@ -72,6 +75,11 @@ impl NmapResults {
                     .map_err(|_| Error::from("failed to parse start time"))
             })?;
 
+        let scan_args: String = root_element
+            .attribute("args")
+            .ok_or_else(|| Error::from("expected args attribute"))
+            .and_then(|s| Ok(s.to_owned()))?;
+
         let mut hosts: Vec<Host> = Vec::new();
         let mut scan_end_time = None;
 
@@ -86,6 +94,7 @@ impl NmapResults {
         }
 
         Ok(NmapResults {
+            args: scan_args,
             hosts,
             scan_start_time,
             scan_end_time,
